@@ -11,7 +11,7 @@ class XeneizeApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Xeneize App',
       theme: ThemeData(
-        // El Azul oficial de nuestra pasión
+        // El azul y oro oficial de nuestra pasión
         primaryColor: const Color(0xFF003087),
       ),
       home: HomePage(),
@@ -50,7 +50,7 @@ class HomePage extends StatelessWidget {
               ),
               child: Column(
                 children: [
-                  const Text("PRÓXIMO PARTIDO", 
+                  const Text("PRÓXIMO PARTIDO vs river", 
                     style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF003087))),
                   const SizedBox(height: 15),
                   Row(
