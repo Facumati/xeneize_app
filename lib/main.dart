@@ -1,105 +1,158 @@
 import 'package:flutter/material.dart';
+import 'services/football_service.dart';
+import 'dart:async'; // <--- IMPORTANTE: Esto permite usar el Timer
 
-void main() => runApp(XeneizeApp());
-
-class XeneizeApp extends StatelessWidget {
-  const XeneizeApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Xeneize App',
-      theme: ThemeData(
-        // El azul y oro oficial de nuestra pasión
-        primaryColor: const Color(0xFF003087),
-      ),
-      home: HomePage(),
-    );
-  }
+void main() {
+  runApp(const MaterialApp(
+    debugShowCheckedModeBanner: false,
+    home: XeneizeHome(),
+  ));
 }
 
-class HomePage extends StatelessWidget {
-  const HomePage({super.key});
+class XeneizeHome extends StatefulWidget {
+  const XeneizeHome({super.key});
+
+  @override
+  State<XeneizeHome> createState() => _XeneizeHomeState();
+}
+
+class _XeneizeHomeState extends State<XeneizeHome> {
+  String _resultado = "Consultando datos...";
+  String _tiempoRestante = "Calculando..."; // <--- Nueva variable para el reloj
+  bool _cargando = true;
+  Timer? _timer; // <--- El motor del cronómetro
+
+  @override
+  void initState() {
+    super.initState();
+    _actualizarPartido();
+  }
+
+  // Limpiamos el timer cuando cerramos la app para que no gaste batería
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  void _iniciarCronometro(String fechaIso) {
+    _timer?.cancel();
+    DateTime fechaPartido = DateTime.parse(fechaIso);
+
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      final ahora = DateTime.now();
+      final diferencia = fechaPartido.difference(ahora);
+
+      if (mounted) {
+        setState(() {
+          if (diferencia.isNegative) {
+            _tiempoRestante = "¡JUEGA EL ÚNICO GRANDE!";
+            _timer?.cancel();
+          } else {
+            // Formato: Días, Horas, Minutos, Segundos
+            _tiempoRestante = 
+              "${diferencia.inDays}d ${diferencia.inHours % 24}h ${diferencia.inMinutes % 60}m ${diferencia.inSeconds % 60}s";
+          }
+        });
+      }
+    });
+  }
+
+  void _actualizarPartido() {
+    setState(() => _cargando = true);
+    
+    FootballService().getProximoPartido().then((partido) {
+      if (mounted) {
+        setState(() {
+          if (partido != null) {
+            final local = partido['teams']['home']['name'];
+            final visitante = partido['teams']['away']['name'];
+            final fechaIso = partido['fixture']['date']; // Traemos la fecha de la API
+            
+            _resultado = "PRÓXIMO PARTIDO:\n$local vs $visitante";
+            _iniciarCronometro(fechaIso); // <--- ACTIVAMOS EL RELOJ
+          } else {
+            _resultado = "No hay partidos próximos.\n¡A esperar el sorteo!";
+            _tiempoRestante = "--:--:--";
+          }
+          _cargando = false;
+        });
+      }
+    }).catchError((error) {
+      if (mounted) {
+        setState(() {
+          _resultado = "Error de conexión.\nVerificá tu API Key.";
+          _cargando = false;
+        });
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5), // Un gris clarito de fondo
+      backgroundColor: const Color(0xFF003057),
       appBar: AppBar(
-        title: const Text('XENEIZE APP', 
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, letterSpacing: 2)),
-        backgroundColor: const Color(0xFF003087), // Azul
+        title: const Text("XENEIZE APP", 
+          style: TextStyle(color: Color(0xFFFCB131), fontWeight: FontWeight.bold, letterSpacing: 3)),
+        backgroundColor: const Color(0xFF003057),
         centerTitle: true,
-        elevation: 10,
+        elevation: 0,
       ),
-      body: SingleChildScrollView( // Por si hay muchas noticias
+      body: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // --- TARJETA PRÓXIMO PARTIDO ---
+            // EL ESCUDO QUE YA CARGAMOS
+            Container(
+              decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+              padding: const EdgeInsets.all(20),
+              child: ClipOval(
+                child: Image.asset(
+                  'assets/images/escudo_boca.png',
+                  height: 120, width: 120, fit: BoxFit.contain,
+                  errorBuilder: (context, error, stackTrace) => 
+                    const Icon(Icons.shield, size: 100, color: Color(0xFF003057)),
+                ),
+              ),
+            ),
+            
+            const SizedBox(height: 40),
+
+            // TARJETA DEL PARTIDO
             Container(
               width: double.infinity,
-              margin: const EdgeInsets.all(16),
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(25),
               decoration: BoxDecoration(
-                color: const Color(0xFFFDB913), // Oro
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(color: Colors.black26, blurRadius: 10, offset: Offset(0, 5))
-                ],
+                color: const Color(0xFFFCB131),
+                borderRadius: BorderRadius.circular(25),
               ),
-              child: Column(
-                children: [
-                  const Text("PRÓXIMO PARTIDO vs river", 
-                    style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF003087))),
-                  const SizedBox(height: 15),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      const Icon(Icons.shield, size: 50, color: Color(0xFF003087)), // Simula escudo Boca
-                      const Text("VS", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                      const Icon(Icons.shield_outlined, size: 50, color: Colors.black54), // Simula Rival
-                    ],
-                  ),
-                  const SizedBox(height: 15),
-                  const Text("BOCA vs RIVAL", 
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF003087))),
-                  const Text("Domingo - 21:00 hs", 
-                    style: TextStyle(fontSize: 16, color: Colors.black87)),
-                ],
-              ),
+              child: _cargando
+                  ? const Center(child: CircularProgressIndicator(color: Color(0xFF003057)))
+                  : Column(
+                      children: [
+                        Text(_resultado, textAlign: TextAlign.center,
+                          style: const TextStyle(color: Color(0xFF003057), fontSize: 20, fontWeight: FontWeight.bold)),
+                        const Divider(color: Color(0xFF003057), height: 30),
+                        const Text("TIEMPO RESTANTE:", style: TextStyle(fontSize: 14, color: Color(0xFF003057))),
+                        Text(_tiempoRestante, // <--- ACÁ SE VE EL RELOJ CORRIENDO
+                          style: const TextStyle(color: Color(0xFF003057), fontSize: 28, fontWeight:  FontWeight.w900)),
+                      ],
+                    ),
             ),
+            
+            const SizedBox(height: 30),
 
-            // --- SECCIÓN DE NOTICIAS ---
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-              child: Align(
-                alignment: Alignment.centerLeft, 
-                child: Text("NOTICIAS DE HOY", 
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF003087)))
-              ),
+            ElevatedButton.icon(
+              onPressed: _actualizarPartido,
+              icon: const Icon(Icons.refresh, color: Color(0xFF003057)),
+              label: const Text("ACTUALIZAR INFO", style: TextStyle(color: Color(0xFF003057), fontWeight: FontWeight.bold)),
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFFCB131), shape: StadiumBorder()),
             ),
-
-            // Noticia 1
-            cardNoticia("Formación confirmada para el domingo", "Hace 10 minutos"),
-            // Noticia 2
-            cardNoticia("Entrenamiento en Ezeiza: Novedades del plantel", "Hace 2 horas"),
           ],
         ),
-      ),
-    );
-  }
-
-  // Esto es una función para no repetir código (un "componente")
-  Widget cardNoticia(String titulo, String tiempo) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: ListTile(
-        leading: const Icon(Icons.newspaper, color: Color(0xFFFDB913)),
-        title: Text(titulo, style: const TextStyle(fontWeight: FontWeight.w500)),
-        subtitle: Text(tiempo),
-        trailing: const Icon(Icons.arrow_forward_ios, size: 16),
       ),
     );
   }
