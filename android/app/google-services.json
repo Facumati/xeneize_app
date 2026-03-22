@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "539336309135",
+    "project_id": "xeneize-app",
+    "storage_bucket": "xeneize-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:539336309135:android:92464a7a62c6c310f3f3fa",
+        "android_client_info": {
+          "package_name": "com.example.xeneize_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDvhflOx9rI7eDvXeQcyoG2qR0nW0qYvPQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
