@@ -1,11 +1,26 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
-  <uses-permission android:name="android.permission.INTERNET"/>
-  
     <application
         android:label="xeneize_app"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
+        ```
+*(Agregué `ACCESS_NETWORK_STATE` que ayuda a que el robot sepa si hay Wi-Fi).*
+
+---
+
+### 🚀 El plan para ahora:
+1.  **Activá "Instalar vía USB"** en el Redmi.
+2.  **Mantené la pantalla del celu prendida** y desbloqueada.
+3.  Tirá de nuevo `flutter run`.
+4.  Apenas aparezca el cartel en el celu, dale a **"Instalar"** o **"Aceptar"**.
+
+**¿Te dejó pasar el cartel de instalación ahora?** Si logramos que instale, con los permisos nuevos en el Manifest, el robot debería encontrar la red y traerte las noticias de Planeta Boca. ¡Dale que no nos gana un Xiaomi! 💙💛💙
+
+¿Pudiste activar esa opción en los Ajustes del desarrollador? Es la clave para que el cable USB te deje trabajar.
         <activity
             android:name=".MainActivity"
             android:exported="true"
